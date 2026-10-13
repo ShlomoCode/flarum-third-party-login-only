@@ -39,15 +39,16 @@ app.initializers.add("v17development-flarum-third-party-login-only", (app) => {
 
   // Replace login footer
   override(LogInModal.prototype, "footer", function () {
-    if (app.forum.attribute("forgotPasswordLink") === "") return null;
+    // Private Facade indexes this array when rendering its login page.
+    if (!app.forum.attribute("forgotPasswordLink")) return [];
 
-    return (
+    return [
       <p className="LogInModal-forgotPassword">
         <a href={app.forum.attribute("forgotPasswordLink")} target={"_blank"}>
           {app.translator.trans("core.forum.log_in.forgot_password_link")}
         </a>
       </p>
-    );
+    ];
   });
 
   // Replace sign up button
