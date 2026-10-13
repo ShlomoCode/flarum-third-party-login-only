@@ -11,9 +11,21 @@ To be clear, this extension **does not add** oAuth to your Flarum instance but i
 This extension is suitable for organizations or communities that only want to allow sign-in and sign-ups with external oAuth accounts/providers.
 
 ## 📥 Installation
-If you like to install this extension, run the following command:
+This fork preserves the original package name. Configure its repository before installing it:
 ```
-composer require v17development/flarum-third-party-login-only
+composer config repositories.third-party-login-only vcs https://github.com/ShlomoCode/flarum-third-party-login-only
+composer require v17development/flarum-third-party-login-only:0.1.2
+```
+
+Before enabling the extension, verify that an administrator can sign in through an enabled OAuth provider. Password login is blocked for administrators too. To require Google, enable only Google in your OAuth extension; this extension does not select providers.
+
+Existing sessions and access tokens remain valid. This extension does not implement invitations or close OAuth registration. Configure invitation requirements separately.
+
+If you lose access, disable the extension through SSH:
+
+```
+php flarum extension:disable v17development-third-party-login-only
+php flarum cache:clear
 ```
 
 ## ♻ Updating
@@ -23,11 +35,21 @@ composer update v17development/flarum-third-party-login-only
 ```
 
 ## 🦸 Features
-- Disables `/login`, `/api/login` and removes login form
+- Disables password login through `POST /login` and `POST /api/token`, and removes the login form
 - Disables `/register` if there's no oAuth-sign-in `token` and removes registration form
 - Disables `/reset` & `/api/forgot` routes and removes password reset form
 - Managing new signups via oAuth extensions is still possible with the `Allow signups` permission
 - Makes it possible to add a welcome message for new users
+
+## Integration checks
+
+Run the checks on a disposable Flarum 1.8 installation with this extension and FoF OAuth enabled. Enable sign-ups for the OAuth registration control. The script creates and removes synthetic users with `forum.test` addresses; do not run it on a production forum.
+
+```
+FLARUM_SITE_PATH=/path/to/forum/site.php php tests/integration/password-login.php
+```
+
+The checks cover password login, password reset, existing authenticated tokens, and native Google registration and login callbacks. They do not contact Google's authorization service or verify the browser consent flow. The fork is tested with Flarum 1.8.20.
 
 ## Knowledge base articles:
 - [Replacing Sign In and Sign Up button](https://community.v17.dev/knowledgebase/41)

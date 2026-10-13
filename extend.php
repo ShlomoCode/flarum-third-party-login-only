@@ -17,20 +17,23 @@ return [
     // Disable default authenticating endpoints
     (new Extend\Routes('forum'))
         ->remove('login')
-        ->post('/login', 'login.disabled', Api\ApiRouteDisabledController::class)
+        ->post('/login', 'login', Api\ApiRouteDisabledController::class)
 
         // Disable password reset
         ->remove('savePassword')
-        ->post('/reset', 'savePassword.disabled', Controller\RouteDisabledController::class)
+        ->post('/reset', 'savePassword', Api\ApiRouteDisabledController::class)
 
         // Disable password reset token validation
         ->remove('resetPassword')
-        ->get('/reset/{token}', 'resetPassword.disabled', Api\ApiRouteDisabledController::class),
+        ->get('/reset/{token}', 'resetPassword', Api\ApiRouteDisabledController::class),
 
     // Remove api endpoints
     (new Extend\Routes('api'))
+        ->remove('token')
+        ->post('/token', 'token', Api\ApiRouteDisabledController::class)
+
         ->remove('forgot')
-        ->post('/forgot', 'forgot.disabled', Api\ApiRouteDisabledController::class)
+        ->post('/forgot', 'forgot', Api\ApiRouteDisabledController::class)
 
         ->remove('users.create')
         ->post('/users', 'users.create', Api\CreateUserController::class),
