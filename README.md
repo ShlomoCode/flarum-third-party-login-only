@@ -43,6 +43,8 @@ composer update v17development/flarum-third-party-login-only
 
 ## Google email identity
 
+This feature requires Flarum 1.8.20 or later in the 1.x series, which exposes the native OAuth response helpers used by the factory.
+
 Google sign-in matches the trusted email supplied by FoF OAuth to the forum user's email. An existing account can sign in without a Google provider link. Google identifiers in old provider links are ignored and are not deleted by this change.
 
 New users still complete Flarum's registration flow and any configured invitation checks. Their temporary registration token keeps the trusted email and profile fields, but its provider identifier is empty and its payload contains only an optional avatar URL. Completing registration does not create a Google provider link. Registration tokens issued under the previous linking policy are rejected; the user must restart Google sign-in.
