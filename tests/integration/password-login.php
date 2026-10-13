@@ -161,13 +161,15 @@ try {
         $failures
     );
 
-    $registrationToken = RegistrationToken::generate(
+    $registrationResponse = $container->make(ResponseFactory::class)->make(
         'google',
         $providerId,
-        ['email' => $oauthEmail],
-        []
+        function (\Flarum\Forum\Auth\Registration $registration) use ($oauthEmail): void {
+            $registration->provideTrustedEmail($oauthEmail);
+        }
     );
-    $registrationToken->save();
+    preg_match('/"token":"([^"]+)"/', (string) $registrationResponse->getBody(), $matches);
+    $registrationToken = RegistrationToken::findOrFail($matches[1]);
 
     expectStatus(
         'registration without OAuth token is forbidden',
@@ -200,25 +202,22 @@ try {
 
     $oauthUser = User::where('username', $oauthUsername)->first();
 
-    if ($oauthUser && $oauthUser->loginProviders()
-        ->where('provider', 'google')
-        ->where('identifier', $providerId)
-        ->exists()) {
-        echo "PASS Google provider is linked to the new user\n";
+    if ($oauthUser && !$oauthUser->loginProviders()->where('provider', 'google')->exists()) {
+        echo "PASS Google registration creates no provider link\n";
 
         $oauthLogin = $container->make(ResponseFactory::class)->make(
             'google',
             $providerId,
-            function (): void {
-                throw new RuntimeException('A linked provider should not start registration');
+            function (\Flarum\Forum\Auth\Registration $registration) use ($oauthEmail): void {
+                $registration->provideTrustedEmail($oauthEmail);
             }
         );
 
         if (strpos((string) $oauthLogin->getBody(), '"loggedIn":true') !== false) {
-            echo "PASS linked Google account completes login\n";
+            echo "PASS trusted-email Google account completes login\n";
         } else {
-            $failures[] = 'linked Google account did not complete login';
-            echo "FAIL linked Google account completes login\n";
+            $failures[] = 'trusted-email Google account did not complete login';
+            echo "FAIL trusted-email Google account completes login\n";
         }
 
         $rememberCookie = explode(';', $oauthLogin->getHeaderLine('Set-Cookie'), 2)[0];
@@ -238,8 +237,8 @@ try {
             echo "FAIL linked Google login issued a remember cookie\n";
         }
     } else {
-        $failures[] = 'Google provider was not linked to the new user';
-        echo "FAIL Google provider is linked to the new user\n";
+        $failures[] = 'Google signup failed or persisted a provider link';
+        echo "FAIL Google signup avoids provider link\n";
     }
 } finally {
     if ($registrationToken) {

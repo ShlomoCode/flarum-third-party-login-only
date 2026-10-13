@@ -41,6 +41,14 @@ composer update v17development/flarum-third-party-login-only
 - Managing new signups via oAuth extensions is still possible with the `Allow signups` permission
 - Makes it possible to add a welcome message for new users
 
+## Google email identity
+
+Google sign-in matches the trusted email supplied by FoF OAuth to the forum user's email. An existing account can sign in without a Google provider link. Google identifiers in old provider links are ignored and are not deleted by this change.
+
+New users still complete Flarum's registration flow and any configured invitation checks. Their temporary registration token keeps the trusted email and profile fields, but its provider identifier is empty and its payload contains only an optional avatar URL. Completing registration does not create a Google provider link. Registration tokens issued under the previous linking policy are rejected; the user must restart Google sign-in.
+
+Google accounts for which FoF OAuth only suggests an email, rather than providing a trusted email, are rejected. Changing a user's Google email requires the matching forum email to be updated separately. Other OAuth providers retain their native behavior. No Google credentials, invitation configuration, existing sessions, or user groups are changed by this feature.
+
 ## Integration checks
 
 Run the checks on a disposable Flarum 1.8 installation with this extension and FoF OAuth enabled. Enable sign-ups for the OAuth registration control. The script creates and removes synthetic users with `forum.test` addresses; do not run it on a production forum.
@@ -50,6 +58,14 @@ FLARUM_SITE_PATH=/path/to/forum/site.php php tests/integration/password-login.ph
 ```
 
 The checks cover password login, password reset, existing authenticated tokens, and native Google registration and login callbacks. They do not contact Google's authorization service or verify the browser consent flow. The fork is tested with Flarum 1.8.20.
+
+To check mandatory invitations, enable FoF Doorman 2.0.0 with public registration disabled on a disposable site and run:
+
+```
+FLARUM_SITE_PATH=/path/to/forum/site.php php tests/integration/google-email-identity.php
+```
+
+This check uses a database transaction for synthetic accounts, registration tokens, provider links, and one-use invitations. It covers email matching, stale Google links, untrusted suggested emails, registration without a saved Google identity, invitation reuse, and unchanged non-Google login. Use the password-login check without mandatory invitations, because its registration control does not submit an invitation.
 
 ## Knowledge base articles:
 - [Replacing Sign In and Sign Up button](https://community.v17.dev/knowledgebase/41)
