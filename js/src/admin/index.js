@@ -8,6 +8,12 @@ app.initializers.add("v17development-third-party-login-only", function () {
     items.remove("useRandomPassword");
     items.remove("emailConfirmation");
   });
+  extend(CreateUserModal.prototype, "submitData", function (data) {
+    if (app.data.settings.display_name_driver === "nickname") {
+      data.nickname = data.username;
+      delete data.username;
+    }
+  });
 
   app.extensionData
     .for("v17development-third-party-login-only")

@@ -69,6 +69,12 @@ try {
     adminCreatedCheck(!password_verify($chosenPassword, (string) $created->password), 'client-supplied password was ignored');
     adminCreatedCheck(!LoginProvider::where('user_id', $created->id)->exists(), 'administrator creation adds no provider link');
 
+    $namedEmail = 'named_'.$suffix.'@forum.test';
+    $namedResponse = $api->withActor($admin)->withBody(['data'=>['attributes'=>['nickname'=>'שלום כהן','email'=>$namedEmail]]])->post('/users');
+    adminCreatedCheck($namedResponse->getStatusCode()===201, 'administrator creates account using a Hebrew display name');
+    $named = User::where('email', $namedEmail)->firstOrFail();
+    adminCreatedCheck($named->nickname==='שלום כהן' && str_starts_with($named->username,'member_'), 'native nickname is saved alongside a generated technical username');
+
     $login = $factory->make('google', 'synthetic-'.$suffix, static function (Registration $registration) use ($email): void {
         $registration->provideTrustedEmail($email);
     });

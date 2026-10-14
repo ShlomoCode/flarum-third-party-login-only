@@ -12,6 +12,7 @@ use FoF\Doorman\DoorkeyBypassRegistry;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 
@@ -49,6 +50,13 @@ class CreateUserController extends AbstractCreateController
         if (!Arr::has($data, 'attributes.token')) {
             if (!$actor->isAdmin()) {
                 throw new PermissionDeniedException('Route is disabled');
+            }
+
+            if (!Arr::has($data, 'attributes.username') && Arr::has($data, 'attributes.nickname') &&
+                $this->container->make(\Flarum\Extension\ExtensionManager::class)->isEnabled('flarum-nicknames')) {
+                $this->container->make(\Illuminate\Contracts\Validation\Factory::class)
+                    ->make(Arr::get($data, 'attributes', []), ['nickname' => 'required|string'])->validate();
+                Arr::set($data, 'attributes.username', 'member_'.Str::random(20));
             }
 
             // Let Flarum generate an unknown password and run its normal registration events.
