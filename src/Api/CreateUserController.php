@@ -53,8 +53,8 @@ class CreateUserController extends AbstractCreateController
             }
 
             if (!Arr::has($data, 'attributes.username') && Arr::has($data, 'attributes.nickname') &&
-                $this->container->make(\Flarum\Extension\ExtensionManager::class)->isEnabled('flarum-nicknames')) {
-                $this->container->make(\Illuminate\Contracts\Validation\Factory::class)
+                $this->serviceContainer->make(\Flarum\Extension\ExtensionManager::class)->isEnabled('flarum-nicknames')) {
+                $this->serviceContainer->make(\Illuminate\Contracts\Validation\Factory::class)
                     ->make(Arr::get($data, 'attributes', []), ['nickname' => 'required|string'])->validate();
                 Arr::set($data, 'attributes.username', 'member_'.Str::random(20));
             }
