@@ -8,6 +8,8 @@ return [
     (new Extend\ServiceProvider())
         ->register(Auth\GoogleEmailServiceProvider::class),
 
+    new Extend\Locales(__DIR__.'/resources/locale'),
+
     // Forum
     (new Extend\Frontend('forum'))
         ->js(__DIR__.'/js/dist/forum.js')

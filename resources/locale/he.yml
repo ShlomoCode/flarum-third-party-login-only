@@ -1,0 +1,4 @@
+core:
+  admin:
+    create_user:
+      username_placeholder: שם לתצוגה

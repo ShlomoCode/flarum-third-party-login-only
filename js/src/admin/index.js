@@ -1,6 +1,20 @@
 import app from "flarum/admin/app";
+import { extend } from "flarum/common/extend";
+import CreateUserModal from "flarum/admin/components/CreateUserModal";
 
 app.initializers.add("v17development-third-party-login-only", function () {
+  extend(CreateUserModal.prototype, "fields", function (items) {
+    items.remove("password");
+    items.remove("useRandomPassword");
+    items.remove("emailConfirmation");
+  });
+  extend(CreateUserModal.prototype, "submitData", function (data) {
+    if (app.data.settings.display_name_driver === "nickname") {
+      data.nickname = data.username;
+      delete data.username;
+    }
+  });
+
   app.extensionData
     .for("v17development-third-party-login-only")
     .registerSetting({
